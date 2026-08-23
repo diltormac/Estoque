@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>📦 Contador de Estoque</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        padding: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+        background: #f0f2f5;
+        min-height: 100vh;
+      }
+      .container {
+        background: white;
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        overflow: hidden;
+      }
+      h1 {
+        margin: 0 0 5px 0;
+        color: #1a237e;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .subtitle {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 15px;
+      }
+
+      .status-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        background: #e8eaf6;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+      }
+      .status-item {
+        text-align: center;
+        font-size: 11px;
+      }
+      .status-item strong {
+        display: block;
+        font-size: 16px;
+        color: #1a237e;
+      }
+
+      .file-upload {
+        background: #e3f2fd;
+        border: 3px dashed #1976d2;
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-bottom: 15px;
+        width: 100%;
+      }
+      .file-upload:active {
+        background: #bbdefb;
+        transform: scale(0.98);
+      }
+      .file-upload input {
+        display: none;
+      }
+      .file-upload .icon {
+        font-size: 30px;
+        display: block;
+      }
+      .file-upload .info-arquivo {
+        font-size: 12px;
+        color: #555;
+        margin-top: 5px;
+      }
+
+      .busca-container {
+        margin: 10px 0;
+        width: 100%;
+      }
+      .busca-container label {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .busca-container input {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        transition: 0.3s;
+        background: white;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .busca-container input:focus {
+        border-color: #1976d2;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+      }
+
+      .produto-encontrado-box {
+        background: #e8f5e9;
+        border: 3px solid #4caf50;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 10px 0;
+        display: none;
+        animation: fadeIn 0.3s;
+      }
+      .produto-encontrado-box.ativo {
+        display: block;
+      }
+      .produto-nao-encontrado-box {
+        background: #ffebee;
+        border: 3px solid #f44336;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 10px 0;
+        display: none;
+        animation: fadeIn 0.3s;
+      }
+      .produto-nao-encontrado-box.ativo {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .produto-nome {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1b5e20;
+        word-wrap: break-word;
+      }
+      .produto-codigo {
+        font-size: 13px;
+        color: #555;
+        margin-top: 2px;
+      }
+      .produto-barras {
+        font-size: 13px;
+        color: #555;
+        margin-top: 2px;
+      }
+      .contagem-anterior {
+        background: #fff3e0;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+      }
+      .contagem-anterior .numero {
+        font-size: 26px;
+        font-weight: bold;
+        color: #e65100;
+      }
+
+      .produto-nao-encontrado-box .mensagem {
+        color: #c62828;
+        font-weight: bold;
+        font-size: 18px;
+        text-align: center;
+      }
+
+      .dica {
+        background: #fff3e0;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #e65100;
+        margin: 10px 0;
+      }
+
+      .quantidade-container {
+        margin: 10px 0;
+        width: 100%;
+      }
+      .quantidade-container label {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .quantidade-container input {
+        width: 100%;
+        padding: 14px;
+        font-size: 20px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        text-align: center;
+        background: white;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .quantidade-container input:focus {
+        border-color: #1976d2;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+      }
+
+      .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin: 10px 0;
+      }
+      .btn-group .full-width {
+        grid-column: 1 / -1;
+      }
+
+      button {
+        padding: 14px;
+        font-size: 14px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        width: 100%;
+        touch-action: manipulation;
+      }
+      button:active {
+        transform: scale(0.95);
+      }
+
+      .btn-success {
+        background: #43a047;
+        color: white;
+      }
+      .btn-success:active {
+        background: #2e7d32;
+      }
+      .btn-warning {
+        background: #fb8c00;
+        color: white;
+      }
+      .btn-warning:active {
+        background: #e65100;
+      }
+      .btn-danger {
+        background: #e53935;
+        color: white;
+      }
+      .btn-danger:active {
+        background: #b71c1c;
+      }
+      .btn-secondary {
+        background: #757575;
+        color: white;
+      }
+      .btn-secondary:active {
+        background: #424242;
+      }
+      .btn-primary {
+        background: #1976d2;
+        color: white;
+      }
+      .btn-primary:active {
+        background: #0d47a1;
+      }
+      .btn-info {
+        background: #00bcd4;
+        color: white;
+      }
+      .btn-info:active {
+        background: #00838f;
+      }
+
+      .alert {
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        display: none;
+        width: 100%;
+        font-size: 14px;
+      }
+      .alert-success {
+        background: #c8e6c9;
+        color: #1b5e20;
+        display: block;
+      }
+      .alert-error {
+        background: #ffcdd2;
+        color: #b71c1c;
+        display: block;
+      }
+      .alert-info {
+        background: #bbdefb;
+        color: #0d47a1;
+        display: block;
+      }
+
+      .historico {
+        background: #fafafa;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+        font-size: 12px;
+      }
+      .historico-item {
+        padding: 3px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .ultima-contagem {
+        text-align: right;
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+      }
+      .total-contado {
+        font-size: 14px;
+        font-weight: bold;
+        color: #1a237e;
+        text-align: center;
+        padding: 8px;
+        background: #e8eaf6;
+        border-radius: 8px;
+        margin: 5px 0;
+      }
+      .status-busca {
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+        margin: 5px 0;
+        min-height: 18px;
+      }
+
+      .sessao-info {
+        background: #e3f2fd;
+        padding: 10px;
+        border-radius: 8px;
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .sessao-info .label {
+        font-weight: bold;
+        font-size: 13px;
+        color: #0d47a1;
+      }
+      .sessao-info .valor {
+        font-weight: bold;
+        font-size: 14px;
+        color: #1a237e;
+        word-break: break-all;
+      }
+
+      .sessao-info button {
+        padding: 8px 15px;
+        font-size: 12px;
+        width: auto;
+      }
+
+      .atalhos {
+        font-size: 11px;
+        color: #999;
+        text-align: center;
+        margin-top: 10px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+      }
+      .atalhos span {
+        display: inline-block;
+        background: #f5f5f5;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin: 2px;
+        font-size: 10px;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 5px;
+        }
+        .container {
+          padding: 10px;
+        }
+        .btn-group {
+          grid-template-columns: 1fr 1fr;
+        }
+        .status-bar {
+          grid-template-columns: 1fr 1fr;
+        }
+        .status-item strong {
+          font-size: 14px;
+        }
+        .produto-nome {
+          font-size: 17px;
+        }
+        h1 {
+          font-size: 17px;
+        }
+        .sessao-info {
+          flex-direction: column;
+          align-items: stretch;
+          text-align: center;
+        }
+        .sessao-info button {
+          width: 100%;
+        }
+        .sessao-info .valor {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <h1>📦 Contador de Estoque</h1>
+      <div class="subtitle">💾 Dados salvos automaticamente no celular</div>
+
+      <div class="status-bar">
+        <div class="status-item">
+          📊 Produtos <strong id="totalProdutos">0</strong>
+        </div>
+        <div class="status-item">
+          ✅ Contados <strong id="totalContados">0</strong>
+        </div>
+        <div class="status-item">
+          📝 Registros <strong id="totalRegistros">0</strong>
+        </div>
+      </div>
+
+      <!-- Sessão -->
+      <div class="sessao-info" id="sessaoInfo">
+        <span class="label">📌 Sessão:</span>
+        <span class="valor" id="nomeSessao">Nenhuma</span>
+        <button onclick="criarNovaSessao()" class="btn-primary">➕ Nova</button>
+        <button onclick="carregarSessoes()" class="btn-info">
+          📂 Carregar
+        </button>
+        <button
+          onclick="deletarSessaoAtual()"
+          class="btn-danger"
+          style="background: #e53935"
+        >
+          🗑️ Deletar
+        </button>
+      </div>
+
+      <!-- Upload -->
+      <div
+        class="file-upload"
+        onclick="document.getElementById('arquivo').click()"
+      >
+        <span class="icon">📂</span>
+        <strong>Clique para importar INVENTARIO.xlsx</strong>
+        <div class="info-arquivo">Suporta .xlsx, .xls, .csv</div>
+        <input type="file" id="arquivo" accept=".xlsx,.xls,.csv" />
+      </div>
+
+      <div id="alert" class="alert"></div>
+
+      <!-- Busca -->
+      <div class="busca-container">
+        <label for="busca">🔍 Código do Produto ou Referência:</label>
+        <input
+          type="text"
+          id="busca"
+          placeholder="Digite o código..."
+          autofocus
+          inputmode="text"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="status-busca" id="statusBusca">Aguardando digitação...</div>
+
+      <div class="dica">
+        ⚡ <strong>Dica:</strong> Busca por <strong>Código</strong> (ex: 506071)
+        ou <strong>Referência</strong> (ex: 1554)
+      </div>
+
+      <!-- Produto Encontrado -->
+      <div id="produtoEncontrado" class="produto-encontrado-box">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          "
+        >
+          <div style="flex: 1">
+            <div class="produto-nome" id="nomeProduto">-</div>
+            <div class="produto-codigo">
+              🔢 Código: <span id="codigoProduto">-</span>
+            </div>
+            <div class="produto-barras">
+              📱 Ref: <span id="barrasProduto">-</span>
+            </div>
+          </div>
+          <div
+            style="
+              background: #4caf50;
+              color: white;
+              padding: 4px 10px;
+              border-radius: 20px;
+              font-size: 11px;
+              white-space: nowrap;
+              margin-left: 8px;
+            "
+          >
+            ✅ ENCONTRADO
+          </div>
+        </div>
+        <div class="contagem-anterior">
+          <span>📝 Contado anteriormente:</span>
+          <span class="numero" id="contagemAnterior">0</span>
+        </div>
+        <div class="ultima-contagem" id="ultimaContagem"></div>
+      </div>
+
+      <!-- Produto Não Encontrado -->
+      <div id="produtoNaoEncontrado" class="produto-nao-encontrado-box">
+        <div class="mensagem">❌ Produto não encontrado!</div>
+        <div
+          style="
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+          "
+        >
+          Verifique o código ou importe a lista
+        </div>
+      </div>
+
+      <!-- Quantidade -->
+      <div class="quantidade-container">
+        <label for="quantidade">✏️ Quantidade contada:</label>
+        <input
+          type="number"
+          id="quantidade"
+          placeholder="Digite a quantidade"
+          step="1"
+          min="1"
+          inputmode="numeric"
+        />
+      </div>
+
+      <!-- Botões -->
+      <div class="btn-group">
+        <button onclick="registrarContagem()" class="btn-success">
+          ✅ Registrar
+        </button>
+        <button onclick="exportarResultado()" class="btn-warning">
+          📤 Exportar
+        </button>
+        <button onclick="zerarContagens()" class="btn-danger full-width">
+          🔄 Zerar Todas
+        </button>
+      </div>
+
+      <div class="total-contado" id="totalContadoDisplay">
+        Total contado: 0 unidades
+      </div>
+
+      <details>
+        <summary
+          style="
+            cursor: pointer;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13px;
+          "
+        >
+          📋 Histórico de contagens (últimas 20)
+        </summary>
+        <div class="historico" id="historico"></div>
+      </details>
+
+      <div class="atalhos">
+        ⚡ Atalhos: <span>Enter</span> Confirmar quantia
+        <span>Ctrl+E</span> Exportar <span>Ctrl+Z</span> Zerar
+        <span>Esc</span> Limpar busca
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+      // ========================================
+      // CONFIGURAÇÕES
+      // ========================================
+      const CHAVE_SESSOES = "sessoes_estoque_v2";
+      const CHAVE_SESSAO_ATUAL = "sessao_atual_estoque_v2";
+      const CHAVE_HISTORICO = "historico_estoque_pro_v2";
+
+      // ========================================
+      // VARIÁVEIS GLOBAIS
+      // ========================================
+      let produtos = [];
+      let contagens = {};
+      let historico = [];
+      let ultimoProdutoEncontrado = null;
+      let contadorRegistros = 0;
+      let totalUnidadesContadas = 0;
+      let timeoutBusca = null;
+      let ultimoTermo = "";
+      let sessaoAtual = null;
+      let sessoes = {};
+      let arquivoNomeAtual = "";
+
+      // ========================================
+      // INICIALIZAÇÃO
+      // ========================================
+      window.addEventListener("load", function () {
+        carregarSessoesSalvas();
+
+        const sessaoId = localStorage.getItem(CHAVE_SESSAO_ATUAL);
+        if (sessaoId && sessoes[sessaoId]) {
+          carregarSessao(sessaoId);
+        } else {
+          const keys = Object.keys(sessoes);
+          if (keys.length > 0) {
+            carregarSessao(keys[keys.length - 1]);
+          }
+        }
+
+        const historicoSalvo = localStorage.getItem(CHAVE_HISTORICO);
+        if (historicoSalvo) {
+          try {
+            historico = JSON.parse(historicoSalvo);
+            atualizarHistorico();
+          } catch (e) {}
+        }
+
+        atualizarStatus();
+        document.getElementById("busca").focus();
+
+        // Salvar automaticamente a cada 5 segundos
+        setInterval(function () {
+          if (sessaoAtual && produtos.length > 0) {
+            salvarSessaoAutomatico();
+          }
+        }, 5000);
+      });
+
+      // ========================================
+      // FUNÇÕES DE SESSÃO
+      // ========================================
+      function carregarSessoesSalvas() {
+        try {
+          const dados = localStorage.getItem(CHAVE_SESSOES);
+          if (dados) {
+            sessoes = JSON.parse(dados);
+          } else {
+            sessoes = {};
+          }
+        } catch (e) {
+          sessoes = {};
+        }
+      }
+
+      function salvarSessoes() {
+        localStorage.setItem(CHAVE_SESSOES, JSON.stringify(sessoes));
+      }
+
+      function criarNovaSessao() {
+        const nome = prompt(
+          "Nome da sessão (ex: Janeiro 2026):",
+          `Inventário ${new Date().toLocaleDateString("pt-BR")}`,
+        );
+        if (!nome) return;
+
+        const id = `sessao_${Date.now()}`;
+        sessoes[id] = {
+          id: id,
+          nome: nome,
+          data: new Date().toISOString(),
+          produtos: produtos,
+          contagens: contagens,
+          totalUnidades: totalUnidadesContadas,
+          registros: contadorRegistros,
+          arquivo: arquivoNomeAtual,
+        };
+
+        salvarSessoes();
+        carregarSessao(id);
+        mostrarAlerta("success", `✅ Sessão "${nome}" criada!`);
+      }
+
+      function carregarSessao(id) {
+        if (!sessoes[id]) {
+          mostrarAlerta("error", "❌ Sessão não encontrada!");
+          return;
+        }
+
+        const sessao = sessoes[id];
+        sessaoAtual = id;
+
+        produtos = sessao.produtos || [];
+        document.getElementById("totalProdutos").textContent = produtos.length;
+
+        contagens = sessao.contagens || {};
+        totalUnidadesContadas = sessao.totalUnidades || 0;
+        contadorRegistros = sessao.registros || 0;
+        arquivoNomeAtual = sessao.arquivo || "";
+
+        localStorage.setItem(CHAVE_SESSAO_ATUAL, id);
+
+        const nomeExibicao = `${sessao.nome} (${new Date(sessao.data).toLocaleDateString("pt-BR")})`;
+        document.getElementById("nomeSessao").textContent =
+          produtos.length > 0
+            ? `${nomeExibicao} - ${produtos.length} produtos`
+            : `${nomeExibicao} - sem produtos`;
+
+        atualizarStatus();
+        atualizarTotalContado();
+
+        if (produtos.length > 0) {
+          mostrarAlerta("success", `✅ Sessão "${sessao.nome}" carregada!`);
+        }
+      }
+
+      function deletarSessaoAtual() {
+        if (!sessaoAtual || !sessoes[sessaoAtual]) {
+          mostrarAlerta("error", "❌ Nenhuma sessão ativa!");
+          return;
+        }
+
+        const nome = sessoes[sessaoAtual].nome;
+        if (!confirm(`⚠️ Deletar a sessão "${nome}" permanentemente?`)) return;
+
+        delete sessoes[sessaoAtual];
+        salvarSessoes();
+
+        const keys = Object.keys(sessoes);
+        if (keys.length > 0) {
+          carregarSessao(keys[keys.length - 1]);
+        } else {
+          sessaoAtual = null;
+          produtos = [];
+          contagens = {};
+          totalUnidadesContadas = 0;
+          contadorRegistros = 0;
+          document.getElementById("totalProdutos").textContent = "0";
+          document.getElementById("nomeSessao").textContent = "Nenhuma";
+          atualizarStatus();
+          atualizarTotalContado();
+          mostrarAlerta("info", "🗑️ Sessão deletada!");
+        }
+      }
+
+      function carregarSessoes() {
+        const keys = Object.keys(sessoes);
+        if (keys.length === 0) {
+          mostrarAlerta("info", "ℹ️ Nenhuma sessão salva. Crie uma nova!");
+          return;
+        }
+
+        let mensagem = "📂 Selecione uma sessão:\n\n";
+        keys.forEach((key, index) => {
+          const s = sessoes[key];
+          const qtdProdutos = s.produtos ? s.produtos.length : 0;
+          mensagem += `${index + 1}. ${s.nome} (${new Date(s.data).toLocaleDateString("pt-BR")}) - ${qtdProdutos} produtos, ${Object.keys(s.contagens || {}).length} contados\n`;
+        });
+        mensagem += "\nDigite o número da sessão:";
+
+        const escolha = prompt(mensagem);
+        if (escolha) {
+          const idx = parseInt(escolha) - 1;
+          if (idx >= 0 && idx < keys.length) {
+            carregarSessao(keys[idx]);
+          } else {
+            mostrarAlerta("error", "❌ Opção inválida!");
+          }
+        }
+      }
+
+      function salvarSessaoAutomatico() {
+        if (!sessaoAtual || produtos.length === 0) return;
+
+        sessoes[sessaoAtual].produtos = produtos;
+        sessoes[sessaoAtual].contagens = contagens;
+        sessoes[sessaoAtual].totalUnidades = totalUnidadesContadas;
+        sessoes[sessaoAtual].registros = contadorRegistros;
+        sessoes[sessaoAtual].data = new Date().toISOString();
+        sessoes[sessaoAtual].arquivo = arquivoNomeAtual;
+
+        salvarSessoes();
+      }
+
+      // ========================================
+      // FUNÇÃO: Carregar arquivo
+      // ========================================
+      document
+        .getElementById("arquivo")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          arquivoNomeAtual = file.name;
+
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            try {
+              const data = new Uint8Array(event.target.result);
+              const workbook = XLSX.read(data, { type: "array" });
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              const json = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+              produtos = json
+                .filter((row) => {
+                  const codigo = String(row["Código"] || "").trim();
+                  return codigo !== "" && codigo !== "Código";
+                })
+                .map((row) => ({
+                  codigo: String(row["Código"] || "").trim(),
+                  nome: String(row["Nome do produto"] || "").trim(),
+                  codigo_barras: String(row["Referência"] || "").trim(),
+                }));
+
+              if (produtos.length === 0) {
+                mostrarAlerta("error", "❌ Nenhum produto encontrado.");
+                return;
+              }
+
+              document.getElementById("totalProdutos").textContent =
+                produtos.length;
+              mostrarAlerta(
+                "success",
+                `✅ ${produtos.length} produtos carregados!`,
+              );
+              document.getElementById("busca").focus();
+
+              if (!sessaoAtual) {
+                const nome = `Inventário ${new Date().toLocaleDateString("pt-BR")}`;
+                const id = `sessao_${Date.now()}`;
+                sessoes[id] = {
+                  id: id,
+                  nome: nome,
+                  data: new Date().toISOString(),
+                  produtos: produtos,
+                  contagens: {},
+                  totalUnidades: 0,
+                  registros: 0,
+                  arquivo: arquivoNomeAtual,
+                };
+                salvarSessoes();
+                carregarSessao(id);
+              } else {
+                sessoes[sessaoAtual].produtos = produtos;
+                sessoes[sessaoAtual].arquivo = arquivoNomeAtual;
+                salvarSessoes();
+                document.getElementById("nomeSessao").textContent =
+                  `${sessoes[sessaoAtual].nome} - ${produtos.length} produtos`;
+                mostrarAlerta("success", `✅ Produtos salvos na sessão!`);
+              }
+            } catch (error) {
+              mostrarAlerta("error", "❌ Erro ao ler o arquivo.");
+              console.error(error);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+          this.value = "";
+        });
+
+      // ========================================
+      // FUNÇÃO: Busca
+      // ========================================
+      document.getElementById("busca").addEventListener("input", function () {
+        const termo = this.value.trim();
+        ultimoTermo = termo;
+
+        if (timeoutBusca) {
+          clearTimeout(timeoutBusca);
+          timeoutBusca = null;
+        }
+
+        document.getElementById("produtoEncontrado").classList.remove("ativo");
+        document
+          .getElementById("produtoNaoEncontrado")
+          .classList.remove("ativo");
+        document.getElementById("statusBusca").textContent = "⌨️ Digitando...";
+
+        if (!termo) {
+          ultimoProdutoEncontrado = null;
+          document.getElementById("statusBusca").textContent =
+            "Aguardando digitação...";
+          return;
+        }
+
+        if (ultimoProdutoEncontrado) {
+          ultimoProdutoEncontrado = null;
+        }
+
+        if (termo.length < 2) {
+          document.getElementById("statusBusca").textContent =
+            "⏳ Digite pelo menos 2 caracteres...";
+          return;
+        }
+
+        document.getElementById("statusBusca").textContent =
+          "⏳ Aguardando fim da digitação...";
+        timeoutBusca = setTimeout(() => {
+          realizarBusca(termo);
+        }, 500);
+      });
+
+      document
+        .getElementById("busca")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            if (timeoutBusca) {
+              clearTimeout(timeoutBusca);
+              timeoutBusca = null;
+            }
+            const termo = this.value.trim();
+            if (termo && termo.length >= 2) {
+              document.getElementById("statusBusca").textContent =
+                "🔍 Buscando (Enter)...";
+              realizarBusca(termo);
+            }
+          }
+        });
+
+      function realizarBusca(termo) {
+        if (termo !== ultimoTermo) {
+          document.getElementById("statusBusca").textContent =
+            "🔄 Termo alterado, aguardando...";
+          return;
+        }
+
+        if (termo.length < 2) {
+          return;
+        }
+
+        const produto = produtos.find(
+          (p) => p.codigo === termo || p.codigo_barras === termo,
+        );
+
+        if (produto) {
+          document.getElementById("produtoEncontrado").classList.add("ativo");
+          document
+            .getElementById("produtoNaoEncontrado")
+            .classList.remove("ativo");
+          document.getElementById("nomeProduto").textContent = produto.nome;
+          document.getElementById("codigoProduto").textContent = produto.codigo;
+          document.getElementById("barrasProduto").textContent =
+            produto.codigo_barras || "Não informado";
+
+          const contado = contagens[produto.codigo] || 0;
+          document.getElementById("contagemAnterior").textContent = contado;
+          document.getElementById("ultimaContagem").textContent = "";
+          ultimoProdutoEncontrado = produto;
+          document.getElementById("statusBusca").textContent =
+            `✅ Produto encontrado: ${produto.nome}`;
+
+          setTimeout(() => {
+            document.getElementById("quantidade").focus();
+            document.getElementById("quantidade").select();
+          }, 100);
+        } else {
+          document
+            .getElementById("produtoEncontrado")
+            .classList.remove("ativo");
+          document
+            .getElementById("produtoNaoEncontrado")
+            .classList.add("ativo");
+          ultimoProdutoEncontrado = null;
+          document.getElementById("statusBusca").textContent =
+            `❌ Nenhum produto encontrado para "${termo}"`;
+        }
+      }
+
+      // ========================================
+      // FUNÇÃO: Registrar contagem
+      // ========================================
+      document
+        .getElementById("quantidade")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            registrarContagem();
+          }
+        });
+
+      function registrarContagem() {
+        const termo = document.getElementById("busca").value.trim();
+        const quantidade = parseInt(
+          document.getElementById("quantidade").value,
+        );
+
+        if (!termo) {
+          mostrarAlerta("error", "⚠️ Digite ou leia um código primeiro!");
+          document.getElementById("busca").focus();
+          return;
+        }
+
+        if (isNaN(quantidade) || quantidade <= 0) {
+          mostrarAlerta(
+            "error",
+            "⚠️ Digite uma quantidade válida (maior que 0)!",
+          );
+          document.getElementById("quantidade").focus();
+          document.getElementById("quantidade").select();
+          return;
+        }
+
+        if (!ultimoProdutoEncontrado) {
+          const produto = produtos.find(
+            (p) => p.codigo === termo || p.codigo_barras === termo,
+          );
+          if (produto) {
+            ultimoProdutoEncontrado = produto;
+          } else {
+            mostrarAlerta("error", "❌ Produto não encontrado!");
+            document.getElementById("busca").focus();
+            return;
+          }
+        }
+
+        const produto = ultimoProdutoEncontrado;
+        const contadoAnterior = contagens[produto.codigo] || 0;
+        contagens[produto.codigo] = contadoAnterior + quantidade;
+        totalUnidadesContadas += quantidade;
+        contadorRegistros++;
+
+        historico.unshift({
+          produto: produto.nome,
+          codigo: produto.codigo,
+          quantidade: quantidade,
+          total: contagens[produto.codigo],
+          horario: new Date().toLocaleString(),
+        });
+        if (historico.length > 20) historico.pop();
+
+        localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(historico));
+
+        salvarSessaoAutomatico();
+
+        document.getElementById("contagemAnterior").textContent =
+          contagens[produto.codigo];
+        document.getElementById("ultimaContagem").textContent =
+          `✅ +${quantidade} em ${new Date().toLocaleTimeString()}`;
+        atualizarStatus();
+        atualizarHistorico();
+        atualizarTotalContado();
+
+        document.getElementById("quantidade").value = "";
+        document.getElementById("busca").value = "";
+        document.getElementById("busca").focus();
+
+        document.getElementById("produtoEncontrado").classList.remove("ativo");
+        document
+          .getElementById("produtoNaoEncontrado")
+          .classList.remove("ativo");
+        document.getElementById("statusBusca").textContent =
+          "Aguardando digitação...";
+        ultimoProdutoEncontrado = null;
+        ultimoTermo = "";
+
+        mostrarAlerta(
+          "success",
+          `✅ ${quantidade} unidades registradas para ${produto.nome}`,
+        );
+      }
+
+      // ========================================
+      // FUNÇÃO: Exportar
+      // ========================================
+      function exportarResultado() {
+        if (produtos.length === 0) {
+          mostrarAlerta("error", "⚠️ Carregue um arquivo primeiro!");
+          return;
+        }
+
+        const dadosExport = produtos.map((p) => ({
+          Código: p.codigo,
+          "Nome do produto": p.nome,
+          Referência: p.codigo_barras,
+          Contagem: contagens[p.codigo] || 0,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dadosExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+
+        const nomeArquivo = `INVENTARIO_CONTADO_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, nomeArquivo);
+
+        mostrarAlerta("success", `📤 "${nomeArquivo}" exportado!`);
+      }
+
+      // ========================================
+      // FUNÇÃO: Zerar contagens
+      // ========================================
+      function zerarContagens() {
+        if (Object.keys(contagens).length === 0) {
+          mostrarAlerta("info", "ℹ️ Nenhuma contagem para zerar.");
+          return;
+        }
+        if (confirm("⚠️ Tem certeza que deseja zerar TODAS as contagens?")) {
+          contagens = {};
+          historico = [];
+          totalUnidadesContadas = 0;
+          contadorRegistros = 0;
+          localStorage.removeItem(CHAVE_HISTORICO);
+          if (sessaoAtual && sessoes[sessaoAtual]) {
+            sessoes[sessaoAtual].contagens = {};
+            sessoes[sessaoAtual].totalUnidades = 0;
+            sessoes[sessaoAtual].registros = 0;
+            salvarSessoes();
+          }
+          atualizarStatus();
+          atualizarHistorico();
+          atualizarTotalContado();
+          document.getElementById("contagemAnterior").textContent = "0";
+          document.getElementById("ultimaContagem").textContent = "";
+          document
+            .getElementById("produtoEncontrado")
+            .classList.remove("ativo");
+          mostrarAlerta("info", "✅ Contagens zeradas!");
+        }
+      }
+
+      // ========================================
+      // FUNÇÕES AUXILIARES
+      // ========================================
+      function atualizarStatus() {
+        const totalContados = Object.keys(contagens).length;
+        document.getElementById("totalContados").textContent = totalContados;
+        document.getElementById("totalRegistros").textContent =
+          contadorRegistros;
+      }
+
+      function atualizarTotalContado() {
+        document.getElementById("totalContadoDisplay").textContent =
+          `Total contado: ${totalUnidadesContadas} unidades`;
+      }
+
+      function atualizarHistorico() {
+        const container = document.getElementById("historico");
+        if (historico.length === 0) {
+          container.innerHTML =
+            '<div style="color:#999; text-align:center;">Nenhum registro ainda</div>';
+          return;
+        }
+        container.innerHTML = historico
+          .map(
+            (item) => `
+            <div class="historico-item">
+                <span><strong>${item.produto}</strong></span>
+                <span>+${item.quantidade} (total: ${item.total})</span>
+                <span style="font-size:10px; color:#999;">${item.horario}</span>
+            </div>
+        `,
+          )
+          .join("");
+      }
+
+      function mostrarAlerta(tipo, mensagem) {
+        const alert = document.getElementById("alert");
+        alert.className = `alert alert-${tipo}`;
+        alert.textContent = mensagem;
+        alert.style.display = "block";
+
+        clearTimeout(alert._timeout);
+        alert._timeout = setTimeout(() => {
+          alert.style.display = "none";
+        }, 3000);
+      }
+
+      // ========================================
+      // ATALHOS DE TECLADO
+      // ========================================
+      document.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.key === "e") {
+          e.preventDefault();
+          exportarResultado();
+        }
+        if (e.ctrlKey && e.key === "z") {
+          e.preventDefault();
+          zerarContagens();
+        }
+        if (e.key === "Escape") {
+          document.getElementById("busca").value = "";
+          document.getElementById("busca").focus();
+          document
+            .getElementById("produtoEncontrado")
+            .classList.remove("ativo");
+          document
+            .getElementById("produtoNaoEncontrado")
+            .classList.remove("ativo");
+          document.getElementById("statusBusca").textContent =
+            "Aguardando digitação...";
+          ultimoProdutoEncontrado = null;
+          ultimoTermo = "";
+        }
+      });
+    </script>
+  </body>
+</html>
