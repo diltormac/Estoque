@@ -237,13 +237,10 @@
         gap: 8px;
         margin: 10px 0;
       }
-      .btn-group .full-width {
-        grid-column: 1 / -1;
-      }
 
       button {
-        padding: 14px;
-        font-size: 14px;
+        padding: 14px 8px;
+        font-size: 13px;
         font-weight: bold;
         border: none;
         border-radius: 10px;
@@ -251,6 +248,7 @@
         transition: 0.3s;
         width: 100%;
         touch-action: manipulation;
+        word-break: break-word; /* Quebra texto se necessário */
       }
       button:active {
         transform: scale(0.95);
@@ -297,6 +295,20 @@
       }
       .btn-info:active {
         background: #00838f;
+      }
+      .btn-purple {
+        background: #7b1fa2;
+        color: white;
+      }
+      .btn-purple:active {
+        background: #4a148c;
+      }
+      .btn-share {
+        background: #25d366;
+        color: white;
+      }
+      .btn-share:active {
+        background: #1da851;
       }
 
       .alert {
@@ -411,6 +423,42 @@
         font-size: 10px;
       }
 
+      .sessao-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 100%;
+      }
+      .sessao-actions button {
+        flex: 1;
+        min-width: 60px;
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      .file-sessao-upload {
+        background: #f3e5f5;
+        border: 3px dashed #7b1fa2;
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-bottom: 10px;
+        width: 100%;
+      }
+      .file-sessao-upload:active {
+        background: #e1bee7;
+        transform: scale(0.98);
+      }
+      .file-sessao-upload input {
+        display: none;
+      }
+      .file-sessao-upload .icon {
+        font-size: 24px;
+        display: block;
+      }
+
       @media (max-width: 480px) {
         body {
           padding: 5px;
@@ -419,10 +467,13 @@
           padding: 10px;
         }
         .btn-group {
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 5px;
         }
         .status-bar {
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 1fr 1fr; /* 3 colunas */
+          gap: 4px;
+          padding: 8px 4px;
         }
         .status-item strong {
           font-size: 14px;
@@ -443,6 +494,105 @@
         }
         .sessao-info .valor {
           font-size: 12px;
+        }
+        .sessao-actions button {
+          min-width: 45px;
+          font-size: 10px;
+          padding: 6px 6px;
+        }
+      }
+
+      /* Para telas com proporção de celular moderno (1080x1900) */
+      @media (max-width: 480px) and (min-aspect-ratio: 1/2) {
+        body {
+          padding: 8px;
+          max-width: 100%;
+        }
+
+        .container {
+          padding: 12px;
+          border-radius: 12px;
+        }
+
+        /* Títulos menores */
+        h1 {
+          font-size: 18px;
+        }
+
+        /* Status bar em 3 colunas com tamanho ajustado */
+        .status-bar {
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 4px;
+          padding: 8px 4px;
+          border-radius: 8px;
+        }
+        .status-item {
+          font-size: 10px;
+        }
+        .status-item strong {
+          font-size: 15px;
+        }
+
+        /* Botões de ação da sessão */
+        .sessao-actions button {
+          font-size: 10px;
+          padding: 6px 4px;
+          min-width: 35px;
+        }
+
+        /* Botões principais */
+        .btn-group {
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 4px;
+        }
+        .btn-group button {
+          padding: 10px 4px;
+          font-size: 11px;
+          border-radius: 8px;
+        }
+
+        /* Campo de busca */
+        .busca-container input {
+          padding: 12px;
+          font-size: 16px;
+        }
+
+        /* Campo de quantidade */
+        .quantidade-container input {
+          padding: 12px;
+          font-size: 18px;
+        }
+
+        /* Produto encontrado */
+        .produto-nome {
+          font-size: 16px;
+        }
+        .contagem-anterior .numero {
+          font-size: 22px;
+        }
+
+        /* Total contado */
+        .total-contado {
+          font-size: 13px;
+          padding: 6px;
+        }
+
+        /* Upload */
+        .file-upload {
+          padding: 14px;
+          margin-bottom: 10px;
+        }
+        .file-upload .icon {
+          font-size: 24px;
+        }
+        .file-upload strong {
+          font-size: 13px;
+        }
+
+        /* Alertas */
+        .alert {
+          padding: 10px;
+          font-size: 13px;
         }
       }
     </style>
@@ -468,20 +618,26 @@
       <div class="sessao-info" id="sessaoInfo">
         <span class="label">📌 Sessão:</span>
         <span class="valor" id="nomeSessao">Nenhuma</span>
-        <button onclick="criarNovaSessao()" class="btn-primary">➕ Nova</button>
-        <button onclick="carregarSessoes()" class="btn-info">
-          📂 Carregar
-        </button>
-        <button
-          onclick="deletarSessaoAtual()"
-          class="btn-danger"
-          style="background: #e53935"
-        >
-          🗑️ Deletar
-        </button>
+        <div class="sessao-actions">
+          <button onclick="criarNovaSessao()" class="btn-primary">Nova</button>
+          <button onclick="carregarSessoes()" class="btn-info">Carregar</button>
+          <button onclick="exportarSessao()" class="btn-share">
+            Compartilhar
+          </button>
+          <button onclick="importarSessao()" class="btn-purple">
+            Importar
+          </button>
+          <button
+            onclick="deletarSessaoAtual()"
+            class="btn-danger"
+            style="background: #e53935"
+          >
+            Excluir
+          </button>
+        </div>
       </div>
 
-      <!-- Upload -->
+      <!-- Upload Excel -->
       <div
         class="file-upload"
         onclick="document.getElementById('arquivo').click()"
@@ -491,6 +647,15 @@
         <div class="info-arquivo">Suporta .xlsx, .xls, .csv</div>
         <input type="file" id="arquivo" accept=".xlsx,.xls,.csv" />
       </div>
+
+      <!-- Upload Sessão (hidden) -->
+      <input
+        type="file"
+        id="arquivoSessao"
+        accept=".sessao"
+        style="display: none"
+        onchange="importarSessaoArquivo(event)"
+      />
 
       <div id="alert" class="alert"></div>
 
@@ -510,8 +675,7 @@
       <div class="status-busca" id="statusBusca">Aguardando digitação...</div>
 
       <div class="dica">
-        ⚡ <strong>Dica:</strong> Busca por <strong>Código</strong> (ex: 506071)
-        ou <strong>Referência</strong> (ex: 1554)
+        <strong></strong><strong></strong><strong></strong>
       </div>
 
       <!-- Produto Encontrado -->
@@ -584,13 +748,13 @@
       <!-- Botões -->
       <div class="btn-group">
         <button onclick="registrarContagem()" class="btn-success">
-          ✅ Registrar
+          Registrar
         </button>
         <button onclick="exportarResultado()" class="btn-warning">
-          📤 Exportar
+          Exportar
         </button>
-        <button onclick="zerarContagens()" class="btn-danger full-width">
-          🔄 Zerar Todas
+        <button onclick="zerarContagens()" class="btn-danger">
+          Zerar Contagem
         </button>
       </div>
 
@@ -827,7 +991,141 @@
       }
 
       // ========================================
-      // FUNÇÃO: Carregar arquivo
+      // FUNÇÃO: EXPORTAR SESSÃO (COMPARTILHAR)
+      // ========================================
+      function exportarSessao() {
+        if (!sessaoAtual || !sessoes[sessaoAtual]) {
+          mostrarAlerta("error", "❌ Nenhuma sessão ativa para exportar!");
+          return;
+        }
+
+        const sessao = sessoes[sessaoAtual];
+        const dados = {
+          versao: "1.0",
+          tipo: "sessao_estoque",
+          id: sessao.id,
+          nome: sessao.nome,
+          data: sessao.data,
+          produtos: sessao.produtos || [],
+          contagens: sessao.contagens || {},
+          totalUnidades: sessao.totalUnidades || 0,
+          registros: sessao.registros || 0,
+          arquivo: sessao.arquivo || "",
+          exportadoEm: new Date().toISOString(),
+        };
+
+        const json = JSON.stringify(dados, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const nomeArquivo = `${sessao.nome.replace(/[^a-zA-Z0-9]/g, "_")}.sessao`;
+
+        // Verificar se o navegador suporta Web Share API (Android/iOS)
+        if (navigator.share && window.innerWidth < 768) {
+          // Dispositivo móvel - usar compartilhamento nativo
+          const file = new File([blob], nomeArquivo, {
+            type: "application/json",
+          });
+          navigator
+            .share({
+              title: `Sessão: ${sessao.nome}`,
+              text: `📦 Sessão de inventário: ${sessao.nome}\n📊 ${sessao.produtos?.length || 0} produtos\n✅ ${Object.keys(sessao.contagens || {}).length} contados\n📝 ${sessao.registros || 0} registros`,
+              files: [file],
+            })
+            .then(() => {
+              mostrarAlerta("success", "✅ Sessão compartilhada!");
+            })
+            .catch((err) => {
+              if (err.name !== "AbortError") {
+                // Fallback: baixar o arquivo
+                downloadSessao(blob, nomeArquivo);
+              }
+            });
+        } else {
+          // Desktop ou navegador sem suporte - baixar normalmente
+          downloadSessao(blob, nomeArquivo);
+        }
+      }
+
+      function downloadSessao(blob, nomeArquivo) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nomeArquivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        mostrarAlerta("success", `💾 Sessão salva como "${nomeArquivo}"!`);
+      }
+
+      // ========================================
+      // FUNÇÃO: IMPORTAR SESSÃO
+      // ========================================
+      function importarSessao() {
+        document.getElementById("arquivoSessao").click();
+      }
+
+      function importarSessaoArquivo(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const dados = JSON.parse(e.target.result);
+
+            // Validar o arquivo
+            if (dados.tipo !== "sessao_estoque") {
+              mostrarAlerta("error", "❌ Arquivo de sessão inválido!");
+              return;
+            }
+
+            if (!dados.produtos || !Array.isArray(dados.produtos)) {
+              mostrarAlerta("error", "❌ Estrutura de sessão inválida!");
+              return;
+            }
+
+            // Perguntar se quer substituir ou criar nova
+            const acao = confirm(
+              `📥 Importar sessão "${dados.nome}"?\n\n` +
+                `${dados.produtos.length} produtos\n` +
+                `${Object.keys(dados.contagens || {}).length} contados\n` +
+                `${dados.totalUnidades || 0} unidades\n\n` +
+                `Clique em OK para substituir a sessão atual.\n` +
+                `Clique em Cancelar para criar uma nova sessão.`,
+            );
+
+            const id = acao ? sessaoAtual : `sessao_${Date.now()}`;
+            const nome = acao ? sessoes[id]?.nome || dados.nome : dados.nome;
+
+            sessoes[id] = {
+              id: id,
+              nome: nome,
+              data: dados.data || new Date().toISOString(),
+              produtos: dados.produtos || [],
+              contagens: dados.contagens || {},
+              totalUnidades: dados.totalUnidades || 0,
+              registros: dados.registros || 0,
+              arquivo: dados.arquivo || "",
+            };
+
+            salvarSessoes();
+            carregarSessao(id);
+            mostrarAlerta(
+              "success",
+              `✅ Sessão "${nome}" importada com sucesso!`,
+            );
+          } catch (error) {
+            mostrarAlerta("error", "❌ Erro ao ler o arquivo de sessão!");
+            console.error(error);
+          }
+        };
+
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      // ========================================
+      // FUNÇÃO: Carregar arquivo Excel
       // ========================================
       document
         .getElementById("arquivo")
@@ -930,7 +1228,7 @@
           ultimoProdutoEncontrado = null;
         }
 
-        if (termo.length < 2) {
+        if (termo.length < 1) {
           document.getElementById("statusBusca").textContent =
             "⏳ Digite pelo menos 2 caracteres...";
           return;
@@ -940,7 +1238,7 @@
           "⏳ Aguardando fim da digitação...";
         timeoutBusca = setTimeout(() => {
           realizarBusca(termo);
-        }, 500);
+        }, 3500);
       });
 
       document
@@ -967,7 +1265,7 @@
           return;
         }
 
-        if (termo.length < 2) {
+        if (termo.length < 1) {
           return;
         }
 
@@ -1103,7 +1401,7 @@
       }
 
       // ========================================
-      // FUNÇÃO: Exportar
+      // FUNÇÃO: Exportar Resultado (Excel)
       // ========================================
       function exportarResultado() {
         if (produtos.length === 0) {
