@@ -7,6 +7,16 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>📦 Contador de Estoque</title>
+    <!-- PWA Config -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1a237e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Contador Estoque" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <style>
       * {
         box-sizing: border-box;
@@ -160,6 +170,7 @@
         font-weight: bold;
         color: #1b5e20;
         word-wrap: break-word;
+        margin-bottom: 6px;
       }
       .produto-codigo {
         font-size: 13px;
@@ -170,6 +181,15 @@
         font-size: 13px;
         color: #555;
         margin-top: 2px;
+      }
+      .produto-saldo {
+        font-size: 13px;
+        color: #555;
+        margin-top: 2px;
+      }
+      .produto-saldo span {
+        font-weight: normal;
+        color: #555;
       }
       .contagem-anterior {
         background: #fff3e0;
@@ -248,7 +268,7 @@
         transition: 0.3s;
         width: 100%;
         touch-action: manipulation;
-        word-break: break-word; /* Quebra texto se necessário */
+        word-break: break-word;
       }
       button:active {
         transform: scale(0.95);
@@ -471,7 +491,7 @@
           gap: 5px;
         }
         .status-bar {
-          grid-template-columns: 1fr 1fr 1fr; /* 3 colunas */
+          grid-template-columns: 1fr 1fr 1fr;
           gap: 4px;
           padding: 8px 4px;
         }
@@ -502,24 +522,18 @@
         }
       }
 
-      /* Para telas com proporção de celular moderno (1080x1900) */
       @media (max-width: 480px) and (min-aspect-ratio: 1/2) {
         body {
           padding: 8px;
           max-width: 100%;
         }
-
         .container {
           padding: 12px;
           border-radius: 12px;
         }
-
-        /* Títulos menores */
         h1 {
           font-size: 18px;
         }
-
-        /* Status bar em 3 colunas com tamanho ajustado */
         .status-bar {
           grid-template-columns: 1fr 1fr 1fr;
           gap: 4px;
@@ -532,15 +546,11 @@
         .status-item strong {
           font-size: 15px;
         }
-
-        /* Botões de ação da sessão */
         .sessao-actions button {
           font-size: 10px;
           padding: 6px 4px;
           min-width: 35px;
         }
-
-        /* Botões principais */
         .btn-group {
           grid-template-columns: 1fr 1fr 1fr;
           gap: 4px;
@@ -550,34 +560,24 @@
           font-size: 11px;
           border-radius: 8px;
         }
-
-        /* Campo de busca */
         .busca-container input {
           padding: 12px;
           font-size: 16px;
         }
-
-        /* Campo de quantidade */
         .quantidade-container input {
           padding: 12px;
           font-size: 18px;
         }
-
-        /* Produto encontrado */
         .produto-nome {
           font-size: 16px;
         }
         .contagem-anterior .numero {
           font-size: 22px;
         }
-
-        /* Total contado */
         .total-contado {
           font-size: 13px;
           padding: 6px;
         }
-
-        /* Upload */
         .file-upload {
           padding: 14px;
           margin-bottom: 10px;
@@ -588,8 +588,6 @@
         .file-upload strong {
           font-size: 13px;
         }
-
-        /* Alertas */
         .alert {
           padding: 10px;
           font-size: 13px;
@@ -695,6 +693,9 @@
             <div class="produto-barras">
               📱 Ref: <span id="barrasProduto">-</span>
             </div>
+            <div class="produto-saldo">
+              💰 Saldo: <span id="saldoProduto">-</span>
+            </div>
           </div>
           <div
             style="
@@ -788,6 +789,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("sw.js")
+          .then(() => console.log("Service Worker registrado"))
+          .catch(() => console.log("Service Worker falhou"));
+      }
       // ========================================
       // CONFIGURAÇÕES
       // ========================================
@@ -809,6 +816,7 @@
       let sessaoAtual = null;
       let sessoes = {};
       let arquivoNomeAtual = "";
+      let colunaQuantNome = "";
 
       // ========================================
       // INICIALIZAÇÃO
@@ -1143,20 +1151,138 @@
               const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
               const json = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
+              // Verificar o nome correto das colunas
+              const colunas = Object.keys(json[0] || {});
+              console.log("📊 Colunas encontradas:", colunas);
+
+              // Função para encontrar o nome correto da coluna
+              function encontrarNomeColuna(nomesPossiveis) {
+                for (const nome of nomesPossiveis) {
+                  // Busca exata
+                  if (colunas.includes(nome)) return nome;
+                  // Busca case insensitive
+                  const encontrado = colunas.find(
+                    (c) => c.toLowerCase() === nome.toLowerCase(),
+                  );
+                  if (encontrado) return encontrado;
+                  // Busca contém a palavra (para "Quant." com caracteres especiais)
+                  const encontradoContem = colunas.find((c) =>
+                    c
+                      .toLowerCase()
+                      .includes(nome.toLowerCase().replace(/[^a-z]/g, "")),
+                  );
+                  if (encontradoContem) return encontradoContem;
+                }
+                return null;
+              }
+
+              const colunaCodigo = encontrarNomeColuna(["Código", "codigo"]);
+              const colunaNome = encontrarNomeColuna([
+                "Nome do produto",
+                "nome do produto",
+                "Nome",
+              ]);
+              const colunaRef = encontrarNomeColuna([
+                "Referência",
+                "referencia",
+                "Referencia",
+              ]);
+
+              // Busca específica para "Quant." com várias variações
+              let colunaQuant = encontrarNomeColuna([
+                "Quant.",
+                "Quant",
+                "quant",
+                "Quantidade",
+                "quantidade",
+              ]);
+
+              // Se não encontrou, tenta pegar a 4ª coluna (índice 3) como fallback
+              if (!colunaQuant && colunas.length > 3) {
+                colunaQuant = colunas[3];
+                console.log("⚠️ Usando fallback: coluna", colunaQuant);
+              }
+
+              colunaQuantNome = colunaQuant || "";
+
+              console.log("🔍 Coluna Quant encontrada:", colunaQuant);
+              console.log("📝 Primeiro registro:", json[0]);
+
               produtos = json
                 .filter((row) => {
-                  const codigo = String(row["Código"] || "").trim();
+                  const codigo = String(row[colunaCodigo] || "").trim();
                   return codigo !== "" && codigo !== "Código";
                 })
-                .map((row) => ({
-                  codigo: String(row["Código"] || "").trim(),
-                  nome: String(row["Nome do produto"] || "").trim(),
-                  codigo_barras: String(row["Referência"] || "").trim(),
-                }));
+                .map((row) => {
+                  // CORREÇÃO: Lê o valor direto da propriedade
+                  // Trata para manter o '0' quando for zero e evitar tratar como vazio
+                  let saldo = "";
+
+                  if (colunaQuant) {
+                    const valorRaw = row[colunaQuant];
+
+                    // Verifica se o valor existe (não é undefined, null ou string vazia)
+                    if (
+                      valorRaw !== undefined &&
+                      valorRaw !== null &&
+                      valorRaw !== ""
+                    ) {
+                      saldo = String(valorRaw).trim();
+                    } else {
+                      // Se realmente estiver vazio, coloca "0" como padrão
+                      saldo = "0";
+                    }
+                  } else {
+                    // Se não encontrou a coluna, tenta buscar em qualquer coluna que contenha "quant"
+                    for (const key of Object.keys(row)) {
+                      if (
+                        key.toLowerCase().includes("quant") ||
+                        key.toLowerCase().includes("quant.")
+                      ) {
+                        const valorRaw = row[key];
+                        if (
+                          valorRaw !== undefined &&
+                          valorRaw !== null &&
+                          valorRaw !== ""
+                        ) {
+                          saldo = String(valorRaw).trim();
+                        } else {
+                          saldo = "0";
+                        }
+                        console.log(
+                          "✅ Saldo encontrado na coluna:",
+                          key,
+                          "valor:",
+                          saldo,
+                        );
+                        break;
+                      }
+                    }
+                  }
+
+                  return {
+                    codigo: String(row[colunaCodigo] || "").trim(),
+                    nome: String(row[colunaNome] || "").trim(),
+                    codigo_barras: String(row[colunaRef] || "").trim(),
+                    saldo: saldo,
+                  };
+                });
 
               if (produtos.length === 0) {
                 mostrarAlerta("error", "❌ Nenhum produto encontrado.");
                 return;
+              }
+
+              // Mostrar exemplo do primeiro produto com saldo
+              if (produtos.length > 0) {
+                console.log("📦 Primeiro produto:", produtos[0]);
+                // Verificar quantos produtos têm saldo diferente de "0"
+                const comSaldo = produtos.filter(
+                  (p) => p.saldo !== "0" && p.saldo !== "",
+                );
+                console.log(
+                  `📊 ${comSaldo.length} produtos com saldo diferente de zero`,
+                );
               }
 
               document.getElementById("totalProdutos").textContent =
@@ -1282,6 +1408,8 @@
           document.getElementById("codigoProduto").textContent = produto.codigo;
           document.getElementById("barrasProduto").textContent =
             produto.codigo_barras || "Não informado";
+          document.getElementById("saldoProduto").textContent =
+            produto.saldo || "0";
 
           const contado = contagens[produto.codigo] || 0;
           document.getElementById("contagemAnterior").textContent = contado;
@@ -1413,6 +1541,7 @@
           Código: p.codigo,
           "Nome do produto": p.nome,
           Referência: p.codigo_barras,
+          "Quant.": p.saldo || "0",
           Contagem: contagens[p.codigo] || 0,
         }));
 
